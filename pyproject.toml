@@ -1,0 +1,19 @@
+[project]
+name = "market-intelligence-knowledge-graph"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "seogjaehyeon", email = "rkdrl45617@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "edgartools>=5.53.0",
+]
+
+[project.scripts]
+market-intelligence-knowledge-graph = "market_intelligence_knowledge_graph:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
