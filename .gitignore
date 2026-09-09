@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+
+
+# Neo 4j
+neo4j/data/
+neo4j/logs/
+neo4j/plugins/
+.env
