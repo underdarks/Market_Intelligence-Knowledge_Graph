@@ -1,0 +1,66 @@
+# Entity Linking을 통한 Company 노드 정보 캐싱
+
+- entity_id: cik:0001046179
+  canonical_name: TSMC
+  aliases: ["TSMC", "Taiwan Semiconductor", "타이완 세미컨덕터", "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD"]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0001045810
+  canonical_name: NVIDIA
+  aliases: ["NVIDIA", "엔비디아", "NVIDIA CORP", "NVDA", "엔디비아"]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0000002488
+  canonical_name: AMD
+  aliases: ["AMD", "Advanced Micro Devices", "ADVANCED MICRO DEVICES INC"]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0000723125
+  canonical_name: Micron
+  aliases: ["Micron", "마이크론", "MICRON TECHNOLOGY INC", "MU"]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0001730168
+  canonical_name: Broadcom
+  aliases: ["Broadcom", "AVGO", "브로드컴", "Broadcom Inc."]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0000804328
+  canonical_name: Qualcomm
+  aliases: ["Qualcomm", "퀄컴", "QUALCOMM INC/DE"]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0001835632
+  canonical_name: Marvell
+  aliases: ["Marvell", "마벨", "Marvell Technology, Inc."]
+  lang_field: chunk_text_en
+
+- entity_id: cik:0002023554
+  canonical_name: Sandisk
+  aliases: ["Sandisk", "샌디스크", "Sandisk Corp"]
+  lang_field: chunk_text_en
+
+- entity_id: dart:00126380
+  canonical_name: 삼성전자
+  aliases: ["삼성전자", "삼전", "Samsung Electronics", "005930", "삼성전자(주)"]
+  lang_field: chunk_text_ko
+
+- entity_id: dart:00164779
+  canonical_name: SK하이닉스
+  aliases: ["SK하이닉스", "하닉", "에스케이하이닉스", "SK Hynix", "000660", "에스케이하이닉스(주)"]
+  lang_field: chunk_text_ko
+
+- entity_id: dart:00126371
+  canonical_name: 삼성전기
+  aliases: ["삼성전기", "Samsung Electro-Mechanics", "009150", "삼성전기(주)"]
+  lang_field: chunk_text_ko
+
+- entity_id: dart:00160843
+  canonical_name: DB하이텍
+  aliases: ["DB하이텍", "디비하이텍", "000990", "주식회사 DB하이텍"]
+  lang_field: chunk_text_ko
+
+- entity_id: dart:00161383
+  canonical_name: 한미반도체
+  aliases: ["한미반도체", "042700", "한미반도체(주)"]
+  lang_field: chunk_text_ko
