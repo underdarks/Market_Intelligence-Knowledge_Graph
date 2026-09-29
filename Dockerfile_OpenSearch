@@ -1,0 +1,6 @@
+# Dockerfile
+FROM opensearchproject/opensearch:3.8.0
+
+# 빌드 시점에 nori(한국어 형태소 분석) 플러그인을 이미지에 포함
+# --batch: 설치 중 라이선스 동의 프롬프트를 자동으로 넘김 (Dockerfile 빌드는 대화형 입력 불가)
+RUN /usr/share/opensearch/bin/opensearch-plugin install --batch analysis-nori

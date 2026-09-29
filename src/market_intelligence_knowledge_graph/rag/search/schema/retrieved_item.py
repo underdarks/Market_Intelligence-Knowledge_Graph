@@ -7,7 +7,7 @@ class RetrievedItem(BaseModel):
     RetrievedItem 하나는 항상 한 출처의 원자 단위를 유지한다. 여러 DB 결과를 하나의 content로 합치지 않는다.
     """
 
-    source_type: str  # "vector_search" (OpenSearch) | "graph_traversal" (Neo4j)
+    source_type: str  # "vector_search" (OpenSearch) | "graph_traversal" (Neo4j) 기타 등..
     doc_id: str  # OpenSearch 문서 ID. 예: "af1ccb67:45"
     entity_id: str  # 예: "cik:0001046179"
     section_title: str  # 예: "business", "risk_factors"

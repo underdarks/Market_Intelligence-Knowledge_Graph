@@ -11,6 +11,8 @@ SYSTEM_PROMPT = """당신은 투자 리서치를 돕는 어시스턴트입니다
 4. 답변은 2~3개의 짧은 문단으로 구성하세요. 하나의 긴 문단으로 몰아쓰지 마세요.
 5. 추측이나 일반 상식으로 답을 보완하지 마세요. 근거에 기반한 사실만 전달하세요."""
 
+NO_EVIDENCE_MESSAGE = "제공된 자료에서 관련 근거를 찾을 수 없어 답변할 수 없습니다."
+
 
 # 근거와 질문을 user 메시지로 조합
 def build_user_message(context: str, question: str) -> str:

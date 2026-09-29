@@ -6,7 +6,7 @@ from market_intelligence_knowledge_graph.rag.data_processing.schema.indexs impor
 from market_intelligence_knowledge_graph.rag.search.schema.retrieved_item import RetrievedItem
 
 
-def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5):
+def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5) -> list[RetrievedItem]:
     """
      opensearch filing_chunks 인덱스 하이브리드 검색(bm25+knn)
 
@@ -24,32 +24,30 @@ def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5
     client: OpenSearch = get_opensearch()
 
     # 3.hybrid 쿼리
-    body = (
-        {
-            "size": 5,
-            "query": {
-                "hybrid": {
-                    "queries": [
-                        {
-                            "bool": {
-                                "must": [{"match": {"chunk_text_en": query}}],
-                                "filter": [{"term": {"entity_id": entity_id}}],
+    body = {
+        "size": k,
+        "query": {
+            "hybrid": {
+                "queries": [
+                    {
+                        "bool": {
+                            "must": [{"match": {lang_field: query}}],
+                            "filter": [{"term": {"entity_id": entity_id}}],
+                        }
+                    },
+                    {
+                        "knn": {
+                            "embedding": {
+                                "vector": query_vector,
+                                "k": k,
+                                "filter": {"term": {"entity_id": entity_id}},
                             }
-                        },
-                        {
-                            "knn": {
-                                "embedding": {
-                                    "vector": query_vector,
-                                    "k": k,
-                                    "filter": {"term": {"entity_id": entity_id}},
-                                }
-                            }
-                        },
-                    ]
-                }
-            },
+                        }
+                    },
+                ]
+            }
         },
-    )
+    }
 
     res = client.search(
         index=FILING_CHUNKS,
@@ -59,7 +57,7 @@ def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5
         body=body,
     )
 
-    retrieved_items: list[RetrievedItem] = []
+    retrieved_items: list[RetrievedItem] = []  # 검색 결과를 담을 리스트
     for hit in res["hits"]["hits"]:
         src = hit["_source"]
         content = src.get("chunk_text_en") or src.get("chunk_text_ko") or ""
@@ -72,3 +70,5 @@ def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5
             score=hit["_score"],
         )
         retrieved_items.append(ret)
+
+    return retrieved_items
