@@ -3,7 +3,7 @@ from opensearchpy import OpenSearch
 from market_intelligence_knowledge_graph.config.opensearch_db import get_opensearch
 from market_intelligence_knowledge_graph.rag.data_processing.load.filing_chunk_embedder import embed_texts
 from market_intelligence_knowledge_graph.rag.data_processing.schema.indexs import FILING_CHUNKS
-from market_intelligence_knowledge_graph.rag.search.schema.retrieved_item import RetrievedItem
+from market_intelligence_knowledge_graph.rag.retrieve.schema.schema import RetrievedItem
 
 
 def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5) -> list[RetrievedItem]:
@@ -18,7 +18,7 @@ def search_filing_chunks(query: str, entity_id: str, lang_field: str, k: int = 5
     """
 
     # 1. 임베딩 변환
-    query_vector: list[float] = embed_texts(texts=list(query))[0]
+    query_vector: list[float] = embed_texts(texts=[query])[0]
 
     # 2. opensearch 커넥션
     client: OpenSearch = get_opensearch()

@@ -1,7 +1,7 @@
+from market_intelligence_knowledge_graph.rag.retrieve.schema.schema import RetrievedItem
+
+
 # 검색 결과를 LLM 프롬프트용 컨텍스트 문자열로 변환. 특정 모델에 최적화하지 않은 범용 텍스트 포맷.
-from market_intelligence_knowledge_graph.rag.search.schema.retrieved_item import RetrievedItem
-
-
 def build_context(items: list[RetrievedItem]) -> str:
     """
     검색 결과를 LLM 프롬프트에 넣을 번호 붙은 문자열로 변환.

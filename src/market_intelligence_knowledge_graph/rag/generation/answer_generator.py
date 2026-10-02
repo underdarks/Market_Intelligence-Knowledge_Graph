@@ -7,14 +7,15 @@ from market_intelligence_knowledge_graph.rag.generation.prompt import (
     SYSTEM_PROMPT,
     build_user_message,
 )
-from market_intelligence_knowledge_graph.rag.schema.answer_event import (
+
+from market_intelligence_knowledge_graph.rag.retrieve.schema.schema import RetrievedItem
+from market_intelligence_knowledge_graph.rag.schemas.answer_event import (
     AnswerEvent,
     DoneEvent,
     SourceItem,
     SourcesEvent,
     TokenEvent,
 )
-from market_intelligence_knowledge_graph.rag.search.schema.retrieved_item import RetrievedItem
 
 
 async def generate_answer(question: str, items: list[RetrievedItem]) -> AsyncGenerator[AnswerEvent, None]:

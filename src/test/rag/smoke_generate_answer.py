@@ -2,13 +2,12 @@ from dotenv import load_dotenv
 
 from market_intelligence_knowledge_graph.config.llm_gateway import close_llm_gateway_client
 from market_intelligence_knowledge_graph.rag.generation.answer_generator import generate_answer
-from market_intelligence_knowledge_graph.rag.schema.answer_event import SourcesEvent, TokenEvent, DoneEvent
+from market_intelligence_knowledge_graph.rag.schemas.answer_event import DoneEvent, SourcesEvent, TokenEvent
 from market_intelligence_knowledge_graph.rag.search.search_filing import search_filing_chunks
-
-load_dotenv()  # 다른 import보다 먼저. 예전 embedder 때의 import 순서 문제 재발 방지
-
 import argparse
 import asyncio
+
+load_dotenv()
 
 
 async def main(question: str, entity_id: str, lang_field: str, show_content) -> None:
@@ -40,6 +39,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     asyncio.run(
         main(
-            question=args.question, entity_id=args.entity_id, lang_field=args.lang_field, show_content=args.show_content
+            question=args.question,
+            entity_id=args.entity_id,
+            lang_field=args.lang_field,
+            show_content=args.show_content,
         )
     )

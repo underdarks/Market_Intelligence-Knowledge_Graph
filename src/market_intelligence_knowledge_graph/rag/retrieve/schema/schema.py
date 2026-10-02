@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class RetrievedItem(BaseModel):
@@ -13,3 +13,16 @@ class RetrievedItem(BaseModel):
     section_title: str  # 예: "business", "risk_factors"
     content: str  # LLM이 읽을 텍스트. chunk_text_ko/en 중 값 있는 쪽
     score: float  # 점수
+
+
+class RetrievalQuery(BaseModel):
+    """모든 검색기가 받는 공통 입력.
+
+    DB별 세부사항(OpenSearch의 lang_field, Neo4j의 Cypher 등)은 넣지 않는다.
+    그건 각 검색기가 내부에서 알아서 처리한다.
+    """
+
+    model_config = ConfigDict(frozen=True)  # 여러 검색기에 동시에 넘기므로 불변으로
+
+    question: str  # 사용자 질문 원문
+    entity_id: str  # 링킹된 회사 ID (Fan-out 붙으면 entity_ids: tuple[str, ...]로 확장)

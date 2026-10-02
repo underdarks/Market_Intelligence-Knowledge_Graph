@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 import re
 from dataclasses import dataclass
@@ -57,50 +58,56 @@ class AliasIndex:
     entries: tuple[AliasEntry, ...]
 
 
-def build_alias_index(companies: list[CompanyRecord]) -> AliasIndex:
+def build_alias_index(company_records: list[CompanyRecord], min_alphanum_len: int) -> AliasIndex:
     """
-    회사 목록으로 별칭 인덱스를 만든다.
+    회사 목록으로 별칭 인덱스(메모리 캐싱)를 만든다.
+
+    Args:
+        min_alphanum_len: 영문·숫자 별칭 최소 길이. 미만이면 제외 (config에서 주입, 하드코딩 금지)
+
+    충돌 정책:
+        서로 다른 회사가 같은 key를 가지면 그 key는 "모든 회사에서" 제외하고 경고 로그를 남긴다.
+        먼저 들어온 회사에 주는 방식은 Neo4j 반환 순서에 따라 결과가 바뀌고,
+        조용히 한쪽 회사로 확정되는 가장 위험한 상황을 만든다. 제외하면 not_found로 떨어져 되묻기로 간다.
 
     Raises:
-        AliasConflictError: 서로 다른 회사가 같은 정규화 키를 가질 때
         ValueError: 정규화하면 빈 문자열이 되는 값이 있을 때 (예: 별칭이 "(주)")
     """
-    owner_by_key: dict[str, str] = {}  # 정규화 키 -> 그 키를 처음 가져간 entity_id
-    entries: list[AliasEntry] = []
 
-    for company in companies:
-        # name을 맨 앞에 둔다. 같은 회사에서 key가 겹치면 먼저 나온 원문이 남는데,
-        # 그 원문이 되묻기 화면의 matched_alias로 나가므로 정식명이 남게 하려는 것.
-        # name, tickers, former_names는 aliases에 복사돼 있지 않아서 여기서 직접 모은다.
+    # defaultdict(set): 없는 key에 접근하면 빈 set을 자동 생성하는 dict
+    # (if key not in d: d[key] = set() 를 매번 안 써도 됨)
+    owners_by_key: dict[str, set[str]] = defaultdict(set)  # key -> 이 key를 가진 entity_id 집합
+    candidates: list[AliasEntry] = []  # 회사 내부 중복만 거른 후보 (충돌 검사 전)
+
+    # ---- 1패스: 후보 수집 ----
+    for company in company_records:
+        seen_keys: set[str] = set()  # 이 회사 안에서 이미 나온 key (회사 내부 중복 제거용)
+
+        # name을 맨 앞에 둔다: 회사 내부 중복 시 먼저 나온 원문이 남는데,
+        # 그 원문이 되묻기 화면의 matched_alias로 나가므로 정식명이 남게 하려는 것
         values = (company.name, *company.aliases, *company.tickers, *company.former_names)
 
         for value in values:
             is_hangul = bool(_HANGUL.search(value))
-            # 한글은 공백을 지운 키(부분 문자열 매칭용), 영문·숫자는 공백을 유지한 키(단어 경계 매칭용)
+            # 한글은 공백 없는 키(부분 문자열 매칭용), 영문·숫자는 공백 유지 키(단어 경계 매칭용)
             key = squash(value) if is_hangul else normalize(value)
 
             if not key:
-                # "(주)"처럼 정규화하면 사라지는 값. 빈 키가 인덱스에 들어가면 모든 질문에 매칭되므로 조용히 넘기지 않고 원인을 바로 찾게 실패시킨다.
+                # 빈 키가 인덱스에 들어가면 모든 질문에 매칭되므로 조용히 넘기지 않는다
                 raise ValueError(f"정규화하면 빈 값이 되는 별칭: entity_id={company.entity_id}, value={value!r}")
 
-            if not is_hangul and len(key.replace(" ", "")) < MIN_ALPHANUM_ALIAS_LENGTH:
-                # 영문·숫자 초단문 (Micron 티커 "MU" 등)은 다른 단어 안에서 걸리는 오탐이 커서 뺀다.
+            if not is_hangul and len(key.replace(" ", "")) < min_alphanum_len:
+                # 영문·숫자 초단문 (Micron "MU" 등)은 다른 단어 안에서 걸리는 오탐이 커서 뺀다
                 logger.info("초단문 별칭 제외: entity_id=%s, value=%r", company.entity_id, value)
                 continue
 
-            owner = owner_by_key.get(key)
-            if owner is None:
-                owner_by_key[key] = company.entity_id
-            elif owner != company.entity_id:
-                # 서로 다른 회사가 같은 키: 요청 중에 조용히 한쪽으로 확정되는 게 가장 위험해서
-                # 기동 시점에 서버를 못 뜨게 막는다.
-                raise AliasConflictError(f"별칭 충돌: key={key!r}, entity_id={owner} vs {company.entity_id}")
-            else:
-                # 같은 회사 안의 중복은 정상이다. name "NVIDIA CORP"와
-                # former_names "NVIDIA CORP/CA"가 둘 다 "nvidia"가 되는 경우.
+            if key in seen_keys:
+                # 같은 회사 안의 중복은 정상 ("NVIDIA CORP"와 "NVIDIA CORP/CA"가 둘 다 "nvidia")
                 continue
+            seen_keys.add(key)
 
-            entries.append(
+            owners_by_key[key].add(company.entity_id)
+            candidates.append(
                 AliasEntry(
                     entity_id=company.entity_id,
                     name=company.name,
@@ -110,4 +117,12 @@ def build_alias_index(companies: list[CompanyRecord]) -> AliasIndex:
                 )
             )
 
-    return AliasIndex(entries=tuple(entries))
+    # ---- 2패스: 충돌 key 제외 ----
+    # dict 컴프리헨션: {k: v for k, v in ... if 조건} 으로 조건에 맞는 항목만 새 dict로
+    conflicts = {key: owners for key, owners in owners_by_key.items() if len(owners) > 1}
+    for key, owners in conflicts.items():
+        logger.warning("별칭 충돌로 인덱스에서 제외: key=%r, entity_ids=%s", key, sorted(owners))
+
+    # 제너레이터 표현식을 tuple()로 바로 감쌈: 리스트를 중간에 만들지 않음
+    entries = tuple(entry for entry in candidates if entry.key not in conflicts)
+    return AliasIndex(entries=entries)
